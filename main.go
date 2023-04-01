@@ -2,13 +2,71 @@ package main
 
 import (
 	"bufio"
-	"chat-backend/clientService"
 	"context"
+	"fmt"
+	"github.com/manifoldco/promptui"
+	"github.com/shaikzhafir/chad-gpt/clientService"
+	"github.com/spf13/cobra"
 	"os"
 )
 
 func main() {
-	ctx := context.Background()
+	rootCmd := &cobra.Command{
+		Use:   "myapp",
+		Short: "MyApp is a CLI application",
+		Long:  `MyApp is a simple CLI application built using Cobra.`,
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("welcome to chad cli gpt")
+			prompt := promptui.Select{
+				Label: "Select Day",
+				Items: []string{"New chat", "Previous chat", "Exit"},
+			}
+
+			_, result, err := prompt.Run()
+			switch result {
+			case "New chat":
+				fmt.Println("New chat selected")
+				StartChat(context.Background())
+			case "Previous chat":
+				fmt.Println("Previous chat")
+			case "Exit":
+				fmt.Println("Exit")
+				return
+			}
+			if err != nil {
+				fmt.Printf("Prompt failed %v\n", err)
+				return
+			}
+
+			fmt.Printf("You choose %q\n", result)
+		},
+	}
+
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+	}
+
+	/*	c := clientService.NewClientService()
+		var promptChan = make(chan string)
+
+		scanner := bufio.NewScanner(os.Stdin)
+		go func() {
+			for scanner.Scan() {
+				promptChan <- scanner.Text()
+			}
+		}()
+
+		for {
+			select {
+			case prompt := <-promptChan:
+				// append prompt to chat completion request
+				// and send it to the stream
+				c.SendPromptToStream(ctx, prompt)
+			}
+		}*/
+}
+
+func StartChat(ctx context.Context) {
 	c := clientService.NewClientService()
 	var promptChan = make(chan string)
 
