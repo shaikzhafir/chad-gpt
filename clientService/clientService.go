@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	gogpt "github.com/sashabaranov/go-gpt3"
+	"github.com/sashabaranov/go-openai"
 	"io"
 	"log"
 	"os"
@@ -36,7 +37,7 @@ func NewClientService() ClientService {
 func (c *clientService) SendPromptToStream(ctx context.Context, prompt string) error {
 	c.chatMessageArr = append(c.chatMessageArr, gogpt.ChatCompletionMessage{
 		Content: prompt,
-		Role:    "user",
+		Role:    openai.ChatMessageRoleUser,
 	})
 
 	req := gogpt.ChatCompletionRequest{
@@ -56,10 +57,10 @@ func (c *clientService) SendPromptToStream(ctx context.Context, prompt string) e
 	for {
 		response, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
-			fmt.Printf("\nStream finished\n")
+			fmt.Printf("\n---\n")
 			c.chatMessageArr = append(c.chatMessageArr, gogpt.ChatCompletionMessage{
 				Content: storeResponse,
-				Role:    "assistant",
+				Role:    openai.ChatMessageRoleAssistant,
 			})
 			return nil
 		}
