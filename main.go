@@ -28,7 +28,30 @@ func main() {
 				fmt.Println("New chat selected")
 				StartChat(context.Background())
 			case "Previous chat":
-				fmt.Println("Previous chat")
+				fmt.Println("Previous chat selected")
+				prompt2 := promptui.Select{
+					Label: "Select Day",
+					Items: []string{"chat 1", "chat 2", "chat 3"},
+				}
+				_, result, err := prompt2.Run()
+				switch result {
+				case "chat 1":
+					fmt.Println("New chat selected")
+					StartChat(context.Background())
+				case "chat 2":
+					fmt.Println("Previous chat selected")
+				case "chat 3":
+					fmt.Println("Exit")
+					return
+				case "Exit":
+					fmt.Println("Exit")
+					return
+				}
+				if err != nil {
+					fmt.Printf("Prompt failed %v\n", err)
+					return
+				}
+
 			case "Exit":
 				fmt.Println("Exit")
 				return
@@ -69,19 +92,21 @@ func main() {
 func StartChat(ctx context.Context) {
 	c := clientService.NewClientService()
 	var promptChan = make(chan string)
+	reader := bufio.NewReader(os.Stdin)
 
-	scanner := bufio.NewScanner(os.Stdin)
 	go func() {
-		for scanner.Scan() {
-			promptChan <- scanner.Text()
+		for {
+			text, _ := reader.ReadString('\n')
+			promptChan <- text
 		}
 	}()
 
 	for {
 		select {
 		case prompt := <-promptChan:
-			// append prompt to chat completion request
-			// and send it to the stream
+			if prompt == "\n" { // skip empty lines
+				continue
+			}
 			c.SendPromptToStream(ctx, prompt)
 		}
 	}
